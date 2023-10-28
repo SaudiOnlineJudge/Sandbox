@@ -1,0 +1,9 @@
+version: '3'
+services:
+    soj.sandbox.test:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        image: soj/sandbox
+        volumes:
+            - './files:/root/files'

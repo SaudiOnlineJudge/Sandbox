@@ -1,0 +1,176 @@
+#!/bin/bash
+
+VERSION="2.2"
+
+function print_error() {
+    local message="$1"
+    echo "Error: $message" >&2
+    exit 1
+}
+
+function show_version() {
+    echo "Version: $VERSION"
+    echo "Languages: c, cpp11, cpp14, cpp17, cpp20, cpp23, java, python2, python3, rust"
+    exit 0
+}
+
+function show_help() {
+    echo "Usage: runlang [OPTIONS] [EXTRA INPUT]"
+    echo "Options:"
+    echo "  -f --file       <string>     Set the value of the filename              Required"
+    echo "  -l --lang       <string>     Set the programming language               Required"
+    echo "  -o --out        <string>     Set the name of the output program"
+    echo "  -s --stats                   Set the file of the program statistics     Path is Optional"
+    echo "  -t --time       <int/string> Time limit in milliseconds or "2.5s"       Path is Optional"
+    echo "  -d --delete                  Deletes the executable after running"
+    echo "  -v --version                 Display program version and exit"
+    echo "  -h --help                    Display this help message and exit"
+    exit 0
+}
+
+
+
+function select_compiler() {
+    NO_COMPILER=0
+    if [[ $LANG = "c" ]]; then
+        COMPILER="gcc"
+        COMPILE_COMMAND="gcc -x c -static -DONLINE_JUDGE -DSOJ $FILENAME -o $OUTPUT"
+    elif [[ $LANG = "cpp11" ]]; then
+        COMPILER="g++"
+        COMPILE_COMMAND="g++ -x c++ -static -O2 -Wall -Wextra -DONLINE_JUDGE -DSOJ -std=c++11 $FILENAME -o $OUTPUT"
+    elif [[ $LANG = "cpp14" ]]; then
+        COMPILER="g++"
+        COMPILE_COMMAND="g++ -x c++ -static -O2 -Wall -Wextra -DONLINE_JUDGE -DSOJ -std=c++14 $FILENAME -o $OUTPUT"
+    elif [[ $LANG = "cpp17" ]]; then
+        COMPILER="g++"
+        COMPILE_COMMAND="g++ -x c++ -static -O2 -Wall -Wextra -DONLINE_JUDGE -DSOJ -std=c++17 $FILENAME -o $OUTPUT"
+    elif [[ $LANG = "cpp20" ]]; then
+        COMPILER="g++"
+        COMPILE_COMMAND="g++ -x c++ -static -O2 -Wall -Wextra -DONLINE_JUDGE -DSOJ -std=c++20 $FILENAME -o $OUTPUT"
+    elif [[ $LANG = "cpp23" ]]; then
+        COMPILER="g++"
+        COMPILE_COMMAND="g++ -x c++ -static -O2 -Wall -Wextra -DONLINE_JUDGE -DSOJ -std=c++2a $FILENAME -o $OUTPUT"
+    elif [[ $LANG = "rust" ]]; then
+        COMPILER="rustc"
+        COMPILE_COMMAND="rustc $FILENAME -O --explain -o $OUTPUT"
+    elif [[ $LANG = "java" ]]; then
+        COMPILER="java"
+        COMPILE_COMMAND="java $FILENAME -DONLINE_JUDGE=true -DSOJ=true"
+        NO_COMPILER=1
+    elif [[ $LANG = "python2" ]]; then
+        COMPILER="python2"
+        COMPILE_COMMAND="python2 $FILENAME"
+        NO_COMPILER=1
+    elif [[ $LANG = "python3" ]]; then
+        COMPILER="python3"
+        COMPILE_COMMAND="python3 $FILENAME"
+        NO_COMPILER=1
+    fi;
+}
+
+function take_input() {
+    OUTPUT="compiled_app"
+    DELETE_AFTER=0
+    STATISTICS=""
+    TIME_LIMIT=-1
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -v|--version)
+                show_version
+                ;;
+            -h|--help)
+                show_help
+                ;;
+            -f|--file)
+                if [[ -n $2 ]]; then
+                    FILENAME="$2"
+                    shift
+                else
+                    print_error "-f file name missing"
+                fi
+                ;;
+            -o|--out)
+                if [[ -n $2 ]]; then
+                    OUTPUT="$2"
+                    shift
+                else
+                    print_error "-o output name missing"
+                fi
+                ;;
+            -l|--lang)
+                if [[ -n $2 ]]; then
+                    LANG="$2"
+                    shift
+                else
+                    print_error "-l language missing"
+                fi
+                ;;
+            -t|--time)
+                if [[ -n $2 ]]; then
+                    TIME_LIMIT="$2"
+                    shift
+                else
+                    print_error "-t time missing"
+                fi
+                ;;
+            -d|--delete)
+                DELETE_AFTER=1
+                ;;
+            -s|--stats)
+                STATISTICS="./files/app.stats"
+                ;;
+            *)
+                extra_input=("$extra_input $1")
+                ;;
+        esac
+        shift
+    done
+
+    # Checking required variables
+    if [[ -z "$FILENAME" ]]; then
+        print_error "required variable -f missing"
+    fi;
+    if [[ -z "$LANG" ]]; then
+        print_error "required variable -l missing"
+    fi;
+}
+
+function main() {
+    take_input "$@"
+    select_compiler
+
+    if [[ $NO_COMPILER -eq 1 ]]; then
+        FINAL="$COMPILE_COMMAND $extra_input"
+        if [[ "$STATISTICS" ]]; then
+            FINAL="\time -f '%e\n%x\n%M' -o $STATISTICS $FINAL"
+        fi;
+        if [[ $TIME_LIMIT -ne -1 ]]; then
+            FINAL="timeout $TIME_LIMIT $FINAL"
+        fi;
+        eval "$FINAL"
+    else
+        eval $COMPILE_COMMAND
+    fi;
+    
+    local exitcode=$?
+    if [[ $NO_COMPILER -eq 0 ]]; then
+        if [[ $exitcode -eq 0 ]]; then
+            FINAL="./$OUTPUT $extra_input"
+                    echo $STATISTICS
+            if [[ "$STATISTICS" ]]; then
+                FINAL="\time -f '%e\n%x\n%M' -o $STATISTICS $FINAL"
+            fi;
+            if [[ $TIME_LIMIT -ne -1 ]]; then
+                FINAL="timeout $TIME_LIMIT $FINAL"
+            fi;
+            echo "$FINAL"
+            eval "$FINAL"
+        fi;
+        if [[ $DELETE_AFTER -eq 1 ]]; then
+            rm $OUTPUT
+        fi;
+    fi;
+
+}
+
+main "$@"

@@ -1,0 +1,13 @@
+#include <bits/stdc++.h>
+using namespace std;
+int main(int argc, char* argv[])
+{
+    cout << "Hello World\n" << argc-1 << '\n';
+    long long n, a, sum = 0;
+    cin >> n;
+    while (n--) {
+        cin >> a;
+        sum += a;
+    }
+    cout << sum;
+}

@@ -1,0 +1,5 @@
+./files/app.stats
+timeout 1000 \time -f '%e\n%x\n%M' -o ./files/app.stats ./compiled_app 
+Hello World
+0
+6
