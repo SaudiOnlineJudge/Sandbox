@@ -17,11 +17,9 @@ Run `runlang -h`
 - [ ] PHP
 
 
-
 ## Security Settings
 - [x] Only 1 process
 - [x] Time & Memory limit
-- [x] Run in isolation mode
 - [x] No internet connection
 - [ ] No Multi-threading (idk how to do)
 
@@ -34,9 +32,9 @@ docker run --stop-timeout 10 --name soj_sandbox_test --rm -v ./files:/root/files
 ```
 
 Here is an example, these are the options:
-- `{LANG}` should be one of the supported languages by `runlang`
-- `{MEMORY_LIMIT}` is in bytes (min 6mb, you can write `1GB`, `256M`)
-- `{TIME_LIMIT}` is in milliseconds (you can write `2s`)
+- `$LANG` should be one of the supported languages by `runlang`
+- `$MEMORY_LIMIT` is in bytes (min 6MB you can write `1GB`, `256M`)
+- `$TIME_LIMIT` is in milliseconds (you can write `2s`, `0.5s`)
 
 ## Future Todo
 - [ ] Lightwegiht image like `alpine`
@@ -44,4 +42,4 @@ Here is an example, these are the options:
 - [ ] Customizibility of statistics in `runlang`
 
 ## License
-Open using
+Allowed for every one (not official license)
