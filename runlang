@@ -1,11 +1,18 @@
 #!/bin/bash
 
-VERSION="2.2"
+VERSION="2.3"
+LOGGING=true
 
 function print_error() {
     local message="$1"
     echo "Error: $message" >&2
     exit 1
+}
+
+function log() {
+    if [[ $LOGGING = true ]]; then
+        echo "[LOG] $1"
+    fi;
 }
 
 function show_version() {
@@ -71,8 +78,8 @@ function select_compiler() {
 function take_input() {
     OUTPUT="compiled_app"
     DELETE_AFTER=0
-    STATISTICS=""
-    TIME_LIMIT=-1
+    STATISTICS="./files/app.stats"
+    TIME_LIMIT='-1'
     while [[ $# -gt 0 ]]; do
         case "$1" in
             -v|--version)
@@ -141,14 +148,19 @@ function main() {
 
     if [[ $NO_COMPILER -eq 1 ]]; then
         FINAL="$COMPILE_COMMAND $extra_input"
+        
+        if [[ $TIME_LIMIT -ne -1 ]]; then
+            FINAL="timeout $TIME_LIMIT 2>/dev/null $FINAL"
+        fi;
         if [[ "$STATISTICS" ]]; then
             FINAL="\time -f '%e\n%x\n%M' -o $STATISTICS $FINAL"
         fi;
-        if [[ $TIME_LIMIT -ne -1 ]]; then
-            FINAL="timeout $TIME_LIMIT $FINAL"
-        fi;
+        log "Final cmd: $FINAL"
         eval "$FINAL"
+        local $final_exit=$?
+        log "Exit code: $final_exit"
     else
+        log "Compiling: $COMPILE_COMMAND"
         eval $COMPILE_COMMAND
     fi;
     
@@ -156,21 +168,25 @@ function main() {
     if [[ $NO_COMPILER -eq 0 ]]; then
         if [[ $exitcode -eq 0 ]]; then
             FINAL="./$OUTPUT $extra_input"
-                    echo $STATISTICS
-            if [[ "$STATISTICS" ]]; then
+            if [[ $TIME_LIMIT != '-1' ]]; then
+                FINAL="timeout $TIME_LIMIT 2>/dev/null $FINAL"
+            fi;
+            if [[ "$STATISTICS" != '' ]]; then
                 FINAL="\time -f '%e\n%x\n%M' -o $STATISTICS $FINAL"
             fi;
-            if [[ $TIME_LIMIT -ne -1 ]]; then
-                FINAL="timeout $TIME_LIMIT $FINAL"
+            if [[ $DEBUGGING ]]; then
+                echo "$FINAL"
             fi;
-            echo "$FINAL"
+            log "Final cmd: $FINAL"
             eval "$FINAL"
+            local final_exit=$?
+            log "Exit code: $final_exit"
         fi;
         if [[ $DELETE_AFTER -eq 1 ]]; then
             rm $OUTPUT
         fi;
     fi;
-
+    exit $final_exit
 }
 
 main "$@"

@@ -1,6 +1,8 @@
 # SOJ Sandbox System
 A docker image `soj/sandbox`, that runs in `ubuntu:22.04`
 
+**Current Version: 2.3**
+
 ## Runlang
 A shell script that takes any code and runs it
 Run `runlang -h`
