@@ -1,4 +1,6 @@
-# SOJ Sandbox System
+# SOJ Sandbox System (Archived)
+**Note:** this is an unupdated version of SOJ Sandbox, stopped working on this github because it's really hard to maintain updating it here
+
 A docker image `soj/sandbox`, that runs in `ubuntu:22.04`
 
 **Current Version: 2.3**
